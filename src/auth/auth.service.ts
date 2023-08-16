@@ -56,42 +56,49 @@ export class AuthService {
 
   }
 
-    async register( registerDto: RegisterUserDto ): Promise<LoginResponse> {
-      const user = await this.create( registerDto );
-      console.log({user})
+  async register( registerDto: RegisterUserDto ): Promise<LoginResponse> {
+    const user = await this.create( registerDto );
+    console.log({user})
 
-      return {
-        user: user,
-        token: this.getJwtToken({ id: user._id })
-      }
-
+    return {
+      user: user,
+      token: this.getJwtToken({ id: user._id })
     }
 
-    async login( loginDto: LoginDTO ) {
-      
-      const { email, password } = loginDto;
+  }
 
-      const user = await this.userModel.findOne({ email: email });
+  async login( loginDto: LoginDTO ) {
+    
+    const { email, password } = loginDto;
 
-      if (!user) {
-        throw new UnauthorizedException('Not valid credentials - email')
-      }
+    const user = await this.userModel.findOne({ email: email });
 
-      if ( !bcryptjs.compareSync( password, user.password ) ) {
-        throw new UnauthorizedException('Not valid credentials - password')
-      }
-
-      const { password:_, ...rest } = user.toJSON();
-
-      return {
-        ...rest,
-        token: this.getJwtToken({ id: user.id })
-      };
-
+    if (!user) {
+      throw new UnauthorizedException('Not valid credentials - email')
     }
 
-  findAll() {
-    return `This action returns all auth`;
+    if ( !bcryptjs.compareSync( password, user.password ) ) {
+      throw new UnauthorizedException('Not valid credentials - password')
+    }
+
+    const { password:_, ...rest } = user.toJSON();
+
+    return {
+      ...rest,
+      token: this.getJwtToken({ id: user.id })
+    };
+
+  }
+
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
+  }
+
+  async findUserById( id: string ) {
+    const user = await this.userModel.findById(id);
+    const { password, ...rest } = user.toJSON();
+
+    return rest;
   }
 
   findOne(id: number) {
